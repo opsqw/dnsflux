@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"regexp"
 	"strconv"
 	"strings"
 	"syscall"
@@ -27,20 +28,11 @@ const (
 
 // Windows API 函数声明
 var (
-	modkernel32                       = syscall.NewLazyDLL("kernel32.dll")
-	modpsapi                          = syscall.NewLazyDLL("psapi.dll")
-	procQueryFullProcessImageNameW    = modkernel32.NewProc("QueryFullProcessImageNameW")
-	procGetProcessImageFileNameW      = modpsapi.NewProc("GetProcessImageFileNameW")
+	modkernel32                    = syscall.NewLazyDLL("kernel32.dll")
+	modpsapi                       = syscall.NewLazyDLL("psapi.dll")
+	procQueryFullProcessImageNameW = modkernel32.NewProc("QueryFullProcessImageNameW")
+	procGetProcessImageFileNameW   = modpsapi.NewProc("GetProcessImageFileNameW")
 )
-
-// DNS查询状态码映射
-var statusMap = map[int]string{
-	0:    "succeeded",
-	123:  "query name error",
-	1460: "query timeout",
-	9003: "DNS name does not exist",
-	9501: "query record not found",
-}
 
 // DNS查询类型映射
 var queryTypes = map[int]string{
@@ -54,6 +46,24 @@ var queryTypes = map[int]string{
 	28: "AAAA",
 	33: "SRV",
 }
+
+// DNS查询状态码映射
+var statusMap = map[int]string{
+	0:    "succeeded",
+	123:  "ERROR(query name error)",
+	1460: "ERROR(query timeout)",
+	9003: "ERROR(DNS name does not exist)",
+	9501: "ERROR(query record not found)",
+}
+
+// IP地址匹配
+var (
+	// IPv4 地址模式
+	ipv4Pattern = regexp.MustCompile(`\b(?:\d{1,3}\.){3}\d{1,3}\b`)
+
+	// IPv6 地址模式 (包括压缩格式)
+	ipv6Pattern = regexp.MustCompile(`(?i)\b(?:(?:[0-9A-F]{1,4}:){7}[0-9A-F]{1,4}|(?:[0-9A-F]{1,4}:){6}:[0-9A-F]{1,4}|(?:[0-9A-F]{1,4}:){5}(?::[0-9A-F]{1,4}){1,2}|(?:[0-9A-F]{1,4}:){4}(?::[0-9A-F]{1,4}){1,3}|(?:[0-9A-F]{1,4}:){3}(?::[0-9A-F]{1,4}){1,4}|(?:[0-9A-F]{1,4}:){2}(?::[0-9A-F]{1,4}){1,5}|[0-9A-F]{1,4}:(?::[0-9A-F]{1,4}){1,6}|:(?:(?::[0-9A-F]{1,4}){1,7}|:)|FE80:(?::[0-9A-F]{0,4}){0,4}%[0-9a-zA-Z]{1,}|::(?:FFFF(?::0{1,4}){0,1}:){0,1}(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])|(?:[0-9A-F]{1,4}:){1,4}:(?:(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9])\.){3,3}(?:25[0-5]|(?:2[0-4]|1{0,1}[0-9]){0,1}[0-9]))\b`)
+)
 
 type Config struct {
 	// 事件ID白名单，为空则不过滤
@@ -216,6 +226,59 @@ func getDNSStatus(status interface{}) string {
 	}
 }
 
+// 提取查询结果中的 IP 地址
+func extractIPs(result string) (ipv4s []string, ipv6s []string) {
+	// 提取所有 IPv4 地址
+	ipv4s = ipv4Pattern.FindAllString(result, -1)
+
+	// 提取所有 IPv6 地址
+	ipv6s = ipv6Pattern.FindAllString(result, -1)
+
+	// 去重
+	ipv4s = removeDuplicates(ipv4s)
+	ipv6s = removeDuplicates(ipv6s)
+
+	return
+}
+
+// 去重函数
+func removeDuplicates(arr []string) []string {
+	seen := make(map[string]bool)
+	result := []string{}
+
+	for _, item := range arr {
+		if !seen[item] {
+			seen[item] = true
+			result = append(result, item)
+		}
+	}
+
+	return result
+}
+
+// 提取并格式化 IP 地址结果
+func formatDNSResult(result string) string {
+	ipv4s, ipv6s := extractIPs(result)
+
+	// 优先使用 IPv4 地址
+	if len(ipv4s) > 0 {
+		if len(ipv4s) == 1 {
+			return ipv4s[0]
+		}
+		return strings.Join(ipv4s, ", ")
+	}
+
+	// 如果没有 IPv4 地址，则使用 IPv6 地址
+	if len(ipv6s) > 0 {
+		if len(ipv6s) == 1 {
+			return ipv6s[0]
+		}
+		return strings.Join(ipv6s, ", ")
+	}
+
+	return ""
+}
+
 // 格式化为北京时间
 func formatTimeAsBeijing(t time.Time, format string) string {
 	// 设置时区为北京
@@ -287,9 +350,12 @@ func handleProcessEvent(evt *etw.Event) {
 			return
 		}
 
-		processId := evt.System.Execution.ProcessID
-		threadId := evt.System.Execution.ThreadID
-		processName, processPath := getProcessInfo(processId)
+		queryType := getDNSQueryType(evt.EventData["QueryType"])
+
+		result := ""
+		if r, ok := evt.EventData["QueryResults"]; ok {
+			result = formatDNSResult(fmt.Sprintf("%v", r))
+		}
 
 		status := ""
 		if r, ok := evt.EventData["QueryStatus"]; ok {
@@ -299,8 +365,10 @@ func handleProcessEvent(evt *etw.Event) {
 			status = getDNSStatus(r)
 		}
 
-		queryType := getDNSQueryType(evt.EventData["QueryType"])
-		result := evt.EventData["QueryResults"]
+		processId := evt.System.Execution.ProcessID
+		threadId := evt.System.Execution.ThreadID
+		processName, processPath := getProcessInfo(processId)
+
 		timestamp := formatTimeAsBeijing(evt.System.TimeCreated.SystemTime, "2006-01-02 03:04:05.000")
 
 		// 控制台输出
