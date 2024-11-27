@@ -1,10 +1,11 @@
 package main
 
 import (
-	"DNSMontior/platform"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"DNSMonitor/platform"
 )
 
 func main() {
