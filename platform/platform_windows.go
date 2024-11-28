@@ -294,7 +294,9 @@ func formatTimeAsBeijing(t time.Time, format string) string {
 	beijingTime := t.In(loc)
 	return beijingTime.Format(format)
 }
-func DNSMonitorImpl() {
+
+// dnsFluxImpl 实现 Windows 平台 DNS 监控
+func dnsFluxImpl() {
 	// 创建实时会话
 	session := etw.NewRealTimeSession("DNSMonitor")
 	defer session.Stop()

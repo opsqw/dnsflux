@@ -1,4 +1,4 @@
-module DNSMonitor
+module dnsflux
 
 go 1.23
 

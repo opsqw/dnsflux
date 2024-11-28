@@ -133,8 +133,8 @@ func parseDNSPacket(data []byte) *DNSInfo {
 	}
 }
 
-// DNSMonitorImpl 实现 DNS 监控功能
-func DNSMonitorImpl() {
+// dnsFluxImpl 实现 Linux 平台 DNS 监控
+func dnsFluxImpl() {
 	// 检查 root 权限
 	if os.Geteuid() != 0 {
 		log.Fatal("必须以 root 权限运行此程序")
@@ -193,9 +193,7 @@ func DNSMonitorImpl() {
 		log.Fatalf("创建 ring buffer 读取器失败: %v", err)
 	}
 	defer rd.Close()
-
-	fmt.Println("DNS 查询监控启动...")
-
+	
 	// 读取事件
 	go func() {
 		// 定义与 C 结构体完全匹配的事件结构
@@ -248,7 +246,7 @@ func DNSMonitorImpl() {
 					}
 
 					fmt.Printf(outputFormat,
-						getBeijingTime().Format("2006-01-02 15:04:05"),
+						getBeijingTime().Format("2006-01-02 03:04:05"),
 						event.PID,
 						procInfo.Name,
 						procInfo.Path,
