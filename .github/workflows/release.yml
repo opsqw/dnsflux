@@ -1,0 +1,66 @@
+name: Release with GoReleaser
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  goreleaser:
+    runs-on: ubuntu-latest
+    container:
+      image: golang:1.21-bullseye
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Install Dependencies
+        run: |
+          apt-get update
+          apt-get install -y \
+            clang \
+            llvm \
+            gcc-aarch64-linux-gnu \
+            linux-headers-generic \
+            qemu-user-static \
+            gcc-multilib \
+            crossbuild-essential-arm64
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: arm64
+
+      - name: Generate vmlinux headers
+        run: |
+          # 创建目录
+          mkdir -p platform/bpf/headers/{x86_64,aarch64}
+          
+          # 为 x86_64 生成 vmlinux.h
+          bpftool btf dump file /sys/kernel/btf/vmlinux format c > platform/bpf/headers/x86_64/vmlinux.h
+          
+          # 为 arm64 使用交叉编译工具链
+          # 注意：这里需要确保有 arm64 的内核头文件
+          ARCH=arm64 make -C /usr/src/linux-headers-$(uname -r) M=$(pwd) headers_install
+          
+          # 创建符号链接以便编译时使用正确的头文件
+          ln -sf platform/bpf/headers/x86_64/vmlinux.h platform/bpf/vmlinux.h
+
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.21'
+
+      - name: Run GoReleaser
+        uses: goreleaser/goreleaser-action@v4
+        with:
+          distribution: goreleaser
+          version: latest
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

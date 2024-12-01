@@ -1,5 +1,4 @@
 //go:build windows
-// +build windows
 
 package platform
 
@@ -13,6 +12,9 @@ import (
 	"syscall"
 	"time"
 	"unsafe"
+
+	"dnsflux/common"
+	"dnsflux/output"
 
 	"github.com/0xrawsec/golang-etw/etw"
 )
@@ -74,11 +76,9 @@ type Config struct {
 
 // 配置事件白名单ID和域名黑名单
 var config = Config{
-	// DNS查询事件ID：3008【已完成的查询】，3011【DNS服务器响应】，3018【缓存查询响应】，3020【索引查询响应】
-	EventIDWhitelist: []uint16{3008, 3018, 3020},
-	DomainBlacklist: []string{
-		"localhost",
-	},
+	// DNS查询事件ID：3006【开始查询】，3008【已完成的查询】，3009【发起索引查询】，3010【发起DNS服务查询】，3011【DNS服务器响应】，3018【缓存查询响应】，3020【索引查询响应】
+	EventIDWhitelist: []uint16{3008},
+	DomainBlacklist:  []string{"localhost"},
 }
 
 // 检查事件ID是否在白名单中
@@ -280,23 +280,20 @@ func formatDNSResult(result string) string {
 }
 
 // 格式化为北京时间
-func formatTimeAsBeijing(t time.Time, format string) string {
+func formatTimeAsBeijing(t time.Time) time.Time {
 	// 设置时区为北京
 	const beijingTimeZone = "Asia/Shanghai"
 	loc, err := time.LoadLocation(beijingTimeZone)
 	if err != nil {
-		// 如果加载时区失败，使用 UTC 作为默认值
-		fmt.Println("Failed to load Beijing time zone, using UTC as default:", err)
-		return t.Format(format)
+		return t // 如果加载时区失败，返回原始时间
 	}
 
-	// 将时间转换为北京时间
-	beijingTime := t.In(loc)
-	return beijingTime.Format(format)
+	// 将时间转换为北京时间并返回
+	return t.In(loc)
 }
 
-// dnsFluxImpl 实现 Windows 平台 DNS 监控
-func dnsFluxImpl() {
+// 实现 Windows 平台 DNS 监控
+func DnsFluxImpl() {
 	// 创建实时会话
 	session := etw.NewRealTimeSession("DNSMonitor")
 	defer session.Stop()
@@ -371,25 +368,47 @@ func handleProcessEvent(evt *etw.Event) {
 		threadId := evt.System.Execution.ThreadID
 		processName, processPath := getProcessInfo(processId)
 
-		timestamp := formatTimeAsBeijing(evt.System.TimeCreated.SystemTime, "2006-01-02 03:04:05.000")
+		beijingTime := formatTimeAsBeijing(evt.System.TimeCreated.SystemTime)
+		timestamp := beijingTime.Format("2001-02-03 04:05:06")
+
+		// 格式化输出内容
+		logEntry := fmt.Sprintf("\n检测到DNS查询:\n时间: %s\n查询域名: %s\n查询类型: %s\n查询状态: %s\n查询结果: %s\n进程ID: %d\n线程ID: %d\n进程名: %s\n进程路径: %s\n事件ID: %d\n------------------------\n",
+			timestamp,
+			queryName,
+			queryType,
+			status,
+			result,
+			processId,
+			threadId,
+			processName,
+			processPath,
+			evt.System.EventID,
+		)
 
 		// 控制台输出
-		fmt.Printf("\n检测到DNS查询:\n")
-		fmt.Printf("时间: %s\n", timestamp)
-		fmt.Printf("查询域名: %s\n", queryName)
-		fmt.Printf("查询类型: %s\n", queryType)
-		fmt.Printf("查询状态: %s\n", status)
-		fmt.Printf("查询结果: %s\n", result)
-		fmt.Printf("进程ID: %d\n", processId)
-		fmt.Printf("线程ID: %d\n", threadId)
-		fmt.Printf("进程名: %s\n", processName)
-		fmt.Printf("进程路径: %s\n", processPath)
-		fmt.Printf("事件ID: %d\n", evt.System.EventID)
-		fmt.Println("------------------------")
+		fmt.Print(logEntry)
 
-		// 调试用：打印完整事件数据
+		//// 调试用：打印完整事件数据
 		//if data, err := json.MarshalIndent(evt, "", "  "); err == nil {
 		//	fmt.Printf("调试信息 - 完整事件数据:\n%s\n", string(data))
 		//}
+
+		// 写入日志文件
+		if err := output.WriteLog(logEntry); err != nil {
+			log.Printf("写入日志失败: %v", err)
+		}
+
+		// 添加到 Web 展示
+		common.AddDNSRecord(common.DNSRecord{
+			Timestamp:   beijingTime,
+			QueryName:   fmt.Sprintf("%v", queryName),
+			QueryType:   queryType,
+			QueryResult: result,
+			ProcessID:   processId,
+			ProcessName: processName,
+			ProcessPath: processPath,
+			ClientIP:    "-", // Windows ETW 事件中可能没有客户端 IP
+		})
+
 	}
 }

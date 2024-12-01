@@ -7,6 +7,7 @@ import (
 	"runtime"
 	"syscall"
 
+	"dnsflux/common"
 	"dnsflux/platform"
 )
 
@@ -19,7 +20,10 @@ func main() {
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
 
 	// 异步启动 DNS 监控
-	go platform.dnsFluxImpl()
+	go platform.DnsFluxImpl()
+
+	// 启动 Web 服务器（使用 goroutine 避免阻塞）
+	go common.StartWebServer()
 
 	// 等待系统退出信号
 	<-sigChan

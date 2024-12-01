@@ -13,13 +13,17 @@ import (
 	"strings"
 	"time"
 
+	"dnsflux/common"
+	"dnsflux/output"
+
 	"github.com/cilium/ebpf"
 	"github.com/cilium/ebpf/link"
 	"github.com/cilium/ebpf/ringbuf"
 	"github.com/cilium/ebpf/rlimit"
 )
 
-//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel dns_bpf bpf/dnsfilter.c -- -I. -O2 -g -Wall -Werror -D__TARGET_ARCH_x86
+//go:generate sh -c "if [ \"$GOARCH\" = \"amd64\" ]; then go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel dns_bpf bpf/dnsfilter.c -- -I. -O2 -g -Wall -Werror -D__TARGET_ARCH_x86; fi"
+//go:generate sh -c "if [ \"$GOARCH\" = \"arm64\" ]; then go run github.com/cilium/ebpf/cmd/bpf2go -target bpfel dns_bpf bpf/dnsfilter.c -- -I. -O2 -g -Wall -Werror -D__TARGET_ARCH_arm64; fi"
 
 // DNS查询类型映射
 var dnsTypeMap = map[uint16]string{
@@ -133,8 +137,8 @@ func parseDNSPacket(data []byte) *DNSInfo {
 	}
 }
 
-// dnsFluxImpl 实现 Linux 平台 DNS 监控
-func dnsFluxImpl() {
+// 实现 Linux 平台 DNS 监控
+func DnsFluxImpl() {
 	// 检查 root 权限
 	if os.Geteuid() != 0 {
 		log.Fatal("必须以 root 权限运行此程序")
@@ -193,7 +197,7 @@ func dnsFluxImpl() {
 		log.Fatalf("创建 ring buffer 读取器失败: %v", err)
 	}
 	defer rd.Close()
-	
+
 	// 读取事件
 	go func() {
 		// 定义与 C 结构体完全匹配的事件结构
@@ -245,8 +249,12 @@ func dnsFluxImpl() {
 						qtype = t
 					}
 
-					fmt.Printf(outputFormat,
-						getBeijingTime().Format("2006-01-02 03:04:05"),
+					// 获取当前时间
+					currentTime := getBeijingTime()
+
+					// 格式化输出内容
+					logEntry := fmt.Sprintf(outputFormat,
+						currentTime.Format("2001-02-03 04:05:06"),
 						event.PID,
 						procInfo.Name,
 						procInfo.Path,
@@ -254,6 +262,31 @@ func dnsFluxImpl() {
 						qtype,
 						dnsInfo.QueryName,
 					)
+
+					// 控制台输出
+					fmt.Print(logEntry)
+
+					// 写入日志文件
+					if err := output.WriteLog(logEntry); err != nil {
+						log.Printf("写入日志失败: %v", err)
+					}
+
+					// 添加到 Web 展示
+					common.AddDNSRecord(common.DNSRecord{
+						Timestamp:   currentTime,
+						QueryName:   dnsInfo.QueryName,
+						QueryType:   qtype,
+						QueryResult: "-", // Linux 平台暂时没有查询结果
+						ProcessID:   event.PID,
+						ProcessName: procInfo.Name,
+						ProcessPath: procInfo.Path,
+						ClientIP: fmt.Sprintf("%d.%d.%d.%d",
+							byte(event.Saddr),
+							byte(event.Saddr>>8),
+							byte(event.Saddr>>16),
+							byte(event.Saddr>>24)),
+					})
+
 				}
 			}
 		}

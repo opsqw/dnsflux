@@ -5,6 +5,7 @@ go 1.23
 require (
 	github.com/0xrawsec/golang-etw v1.6.2
 	github.com/cilium/ebpf v0.16.0
+	github.com/gorilla/websocket v1.5.3
 )
 
 require (
