@@ -1,20 +1,26 @@
 <div align="center">
 <h1>dnsflux</h1>
-<div align="center">
 
-[![Repo stars](https://img.shields.io/github/stars/whoopscs/dnsflux)](https://github.com/whoopscs/dnsflux/stargazers)
-[![Repo tags](https://img.shields.io/github/v/tag/whoopscs/dnsflux?label=Latest)](https://github.com/whoopscs/dnsflux/tags)
-[![Downloads total](https://img.shields.io/github/downloads/whoopscs/dnsflux/total?label=Downloads)](https://github.com/whoopscs/dnsflux/releases)
+使用 golang 编写的用于 Windows 和 Linux 平台的 DNS 查询请求监控工具。
+
+<div>
+
+[![Stars](https://img.shields.io/github/stars/whoopscs/dnsflux?style=flat)](https://github.com/whoopscs/dnsflux)
+[![Forks](https://img.shields.io/github/forks/whoopscs/dnsflux?style=flat)](https://github.com/whoopscs/dnsflux)
+[![Release](https://img.shields.io/github/v/release/whoopscs/dnsflux?sort=semver)](https://github.com/whoopscs/dnsflux/releases)
+[![License](https://img.shields.io/github/license/whoopscs/dnsflux?style=flat)](https://mit-license.org/)
+
+</div>
+
+<div>
+
+中文 ｜ [English](README_EN.md)
 
 </div>
 </div>
 
-# dnsflux
+---
 
-> 使用 golang 编写的用于 Windows 和 Linux 平台的 DNS 查询请求监控工具。
-
-
-<!-- [![Deploy with Docker](https://raw.githubusercontent.com/jason5ng32/MyIP/main/public/github/Docker.svg)](https://hub.docker.com/r/jason5ng32/myip) -->
 
 ## 项目介绍
 
@@ -43,7 +49,7 @@ sudo dnsflux
 
 ## 支持项目
 
-如果您发现 dnsflux 有用，您可以通过向作者捐款来表达您的感激之情，激励他们继续更新和改进它！
+如果您发现 dnsflux 有用，您可以通过向作者捐赠来表达您的感激之情，激励他们继续更新和改进它！
 
 <div align=center>
 <img src="images/reward.png" style="width: 30%" />
@@ -57,18 +63,12 @@ sudo dnsflux
 
 ## 许可证
 
-This project is licensed under the [MIT](./)
+本项目采用 [MIT](./LICENSE) 许可。
 
 
-## Star
+## Star History
 
 <div align="center">
-
-<!-- <img src="https://api.star-history.com/svg?repos=whoopscs/dnsflux&type=Date" width="800" height="600" alt="Star History Chart" valign="middle"> -->
-
-
-[//]: # ([![Star History Chart]&#40;https://api.star-history.com/svg?repos=whoopscs/dnsflux&type=Date&#41;]&#40;https://star-history.com/#whoopscs/dnsflux&Date&#41;)
-
 
 [![Stargazers over time](https://starchart.cc/whoopscs/dnsflux.svg?variant=adaptive)](https://starchart.cc/whoopscs/dnsflux)
 
