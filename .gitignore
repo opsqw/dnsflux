@@ -1,13 +1,7 @@
-# IDE
 .idea/
 .vscode/
 .DS_Store
-
-# Environments
 .env
 .venv
-
-# Build
 build/
-build.bat
-build.sh
+dist/
