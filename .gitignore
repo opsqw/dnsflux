@@ -1,7 +1,31 @@
+# IDE
 .idea/
 .vscode/
 .DS_Store
+
+# Environment files
 .env
 .venv
+
+# Dependency directories
+node_modules/
+
+# Database files
+*.db
+
+# Log files
+/logs/
+*.log
+
+# Test files
+/test/
+/testdata/
+/tmp/
+
+# Build files
 build/
 dist/
+
+# eBPF generated files
+internal/collector/linux/bpf/vmlinux.h
+internal/collector/linux/bpf/*.o

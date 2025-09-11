@@ -70,19 +70,13 @@ static __always_inline int process_dns(struct pt_regs *ctx, struct sock *sk, __u
     // 获取数据包内容
     struct msghdr *msg = (struct msghdr *)PT_REGS_PARM2(ctx);
     if (msg) {
-        struct iovec *iov;
-        BPF_CORE_READ_INTO(&iov, msg, msg_iter.iov);
-        if (iov) {
-            void *base;
-            size_t len;
-            BPF_CORE_READ_INTO(&base, iov, iov_base);
-            BPF_CORE_READ_INTO(&len, iov, iov_len);
-
-            if (base && len <= sizeof(event->pkt_data)) {
-                bpf_probe_read_user(event->pkt_data, len, base);
-                event->pkt_len = len;
-            }
+        // 仅记录长度，避免直接访问 msg_iter.iov 在不同内核版本中的非兼容字段
+        __u64 len = 0;
+        BPF_CORE_READ_INTO(&len, msg, msg_iter.count);
+        if (len > sizeof(event->pkt_data)) {
+            len = sizeof(event->pkt_data);
         }
+        event->pkt_len = (__u16)len;
     }
 
     // 转换地址为网络字节序

@@ -5,47 +5,37 @@ before:
     - go mod tidy
 
 builds:
-  # Linux 构建
+  # Linux Build - eBPF
   - id: "linux"
-    binary: dnsflux
+    main: ./cmd/dnsflux
     env:
       - CGO_ENABLED=1
     goos:
       - linux
     goarch:
       - amd64
-      # - arm64
-    hooks:
-      pre: |
-        go generate ./...
-
-  # Windows 和 Darwin 构建
-  - id: "others"
+    flags:
+      - -tags=linux
+    ldflags:
+      - -s -w -X main.version={{.Version}}
     binary: dnsflux
+
+  # Windows Build
+  - id: "windows"
+    main: ./cmd/dnsflux
     env:
       - CGO_ENABLED=1
     goos:
       - windows
-      # - darwin
     goarch:
       - amd64
-      - arm64
-    # ignore:
-    #   - goos: darwin
-    #     goarch: arm64
-    # hooks:
-    #   pre: go generate ./...
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+    binary: dnsflux
 
 archives:
   - format: binary
-    name_template: >-
-      {{ .ProjectName }}_
-      {{- .Os }}_
-      {{- if eq .Arch "amd64" }}x86_64
-      {{- else if eq .Arch "arm64" }}aarch64
-      {{- else }}{{ .Arch }}{{ end }}
-      {{- if .Arm }}v{{ .Arm }}{{ end }}
-      {{- if eq .Os "windows" }}.exe{{ end }}
+    name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}{{ if .Arm }}v{{ .Arm }}{{ end }}"
 
 checksum:
   name_template: 'checksums.txt'
@@ -56,4 +46,6 @@ changelog:
     exclude:
       - '^docs:'
       - '^test:'
-      - '^ci:' 
+      - '^ci:'
+      - "^*.md"
+      - "^*.ya?ml"

@@ -2,6 +2,9 @@
 
 package linux
 
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-D__TARGET_ARCH_x86" -tags "linux,amd64" dns_bpf bpf/dnsfilter.c -- -I bpf
+//go:generate go run github.com/cilium/ebpf/cmd/bpf2go -cc clang -cflags "-D__TARGET_ARCH_arm64" -tags "linux,arm64" dns_bpf bpf/dnsfilter.c -- -I bpf
+
 import (
 	"bytes"
 	"context"

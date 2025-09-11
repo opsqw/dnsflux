@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -11,56 +12,85 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
-    container:
-      image: golang:1.21-bullseye
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Install Dependencies
+      - name: Install eBPF Dependencies
         run: |
-          apt-get update
-          apt-get install -y \
+          sudo apt-get update
+          sudo apt-get install -y \
+            curl \
             clang \
             llvm \
-            gcc-aarch64-linux-gnu \
-            linux-headers-generic \
-            qemu-user-static \
+            libbpf-dev \
             gcc-multilib \
-            crossbuild-essential-arm64
+            linux-headers-generic \
+            linux-tools-common \
+            linux-tools-generic
+
+      - name: Install Cross-compilation Tools
+        run: |
+          sudo apt-get install -y \
+            gcc-aarch64-linux-gnu \
+            crossbuild-essential-arm64 \
+            qemu-user-static
 
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
         with:
           platforms: arm64
 
-      - name: Generate vmlinux headers
+      - name: Generate eBPF Headers
         run: |
-          # 创建目录
-          mkdir -p platform/bpf/headers/{x86_64,aarch64}
+          # 确保 eBPF 目录存在
+          mkdir -p internal/collector/linux/bpf
           
-          # 为 x86_64 生成 vmlinux.h
-          bpftool btf dump file /sys/kernel/btf/vmlinux format c > platform/bpf/headers/x86_64/vmlinux.h
+          # 检查是否已存在 vmlinux.h，如果不存在则生成
+          if [ ! -f internal/collector/linux/bpf/vmlinux.h ]; then
+            echo "Generating vmlinux.h for eBPF compilation..."
+            # 尝试从当前内核生成 vmlinux.h
+            if bpftool btf dump file /sys/kernel/btf/vmlinux format c > internal/collector/linux/bpf/vmlinux.h 2>/dev/null; then
+              echo "Successfully generated vmlinux.h from current kernel BTF"
+            else
+              echo "Failed to generate from BTF, downloading from libbpf repository..."
+              # 从 libbpf 官方仓库下载标准的 vmlinux.h
+              curl -L -o internal/collector/linux/bpf/vmlinux.h \
+                "https://raw.githubusercontent.com/libbpf/libbpf/master/src/vmlinux.h" || {
+                echo "Failed to download vmlinux.h from libbpf repository"
+                exit 1
+              }
+            fi
+          else
+            echo "vmlinux.h already exists, skipping generation"
+          fi
           
-          # 为 arm64 使用交叉编译工具链
-          # 注意：这里需要确保有 arm64 的内核头文件
-          ARCH=arm64 make -C /usr/src/linux-headers-$(uname -r) M=$(pwd) headers_install
-          
-          # 创建符号链接以便编译时使用正确的头文件
-          ln -sf platform/bpf/headers/x86_64/vmlinux.h platform/bpf/vmlinux.h
+          # 验证头文件是否生成成功
+          if [ -f internal/collector/linux/bpf/vmlinux.h ] && [ -s internal/collector/linux/bpf/vmlinux.h ]; then
+            echo "vmlinux.h is ready ($(wc -l < internal/collector/linux/bpf/vmlinux.h) lines)"
+          else
+            echo "vmlinux.h is missing or empty"
+            exit 1
+          fi
 
       - name: Set up Go
         uses: actions/setup-go@v4
         with:
-          go-version: '1.21'
+          go-version: '1.23'
+          cache: true
+
+      - name: Verify Go Environment
+        run: |
+          go version
+          go env
 
       - name: Run GoReleaser
-        uses: goreleaser/goreleaser-action@v4
+        uses: goreleaser/goreleaser-action@v6
         with:
           distribution: goreleaser
-          version: latest
-          args: release --clean
+          version: "~> v2"
+          args: ${{ github.event_name == 'workflow_dispatch' && 'build --snapshot --clean' || 'release --clean' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
