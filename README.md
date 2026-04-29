@@ -51,6 +51,11 @@ DNSFlux is a high-performance cross-platform DNS query monitoring tool designed 
 - **Data Source**: Kernel network packet capture and parsing
 - **Monitoring Points**: udp_sendmsg and tcp_sendmsg system calls
 - **Permission Requirements**: Requires root privileges or privileged mode
+- **Kernel Requirements**: 
+  - Kernel version >= 5.8 (recommended for best CO-RE support)
+  - BTF (BPF Type Format) support enabled (CONFIG_DEBUG_INFO_BTF=y)
+  - Kernel debug information packages installed
+  - eBPF support enabled (CONFIG_BPF_SYSCALL=y)
 
 ### System Components
 
@@ -194,7 +199,7 @@ dnsflux
 ## 📸 Interface Preview
 
 ### Web Monitoring Interface
-![Web Interface](./img/.png)
+![Web Interface](./assets/web.png)
 
 ### Console Output
 ```

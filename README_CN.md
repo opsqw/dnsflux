@@ -190,7 +190,7 @@ export DNSFLUX_LOG_LEVEL=info
 ## 📸 界面预览
 
 ### Web 监控界面
-![Web Interface](./img/web.png)
+![Web Interface](./assets/web.png)
 
 ### 控制台输出
 ```
