@@ -1,4 +1,4 @@
-package flag
+package config
 
 import (
 	"flag"
@@ -50,7 +50,7 @@ func ParseFlags() *Config {
 
 	// 定义默认值
 	defaultEnableWeb := GetEnvAsBool("DNSFLUX_ENABLE_WEB", false)
-	defaultListenAddr := GetEnv("DNSFLUX_HOST", "127.0.0.1")
+	defaultListenAddr := GetEnv("DNSFLUX_HOST", "0.0.0.0")
 	defaultListenPort := GetEnvAsInt("DNSFLUX_PORT", 58080)
 	defaultLogLevel := GetEnv("DNSFLUX_LOG_LEVEL", "info")
 

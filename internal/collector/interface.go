@@ -64,11 +64,7 @@ func (m *Manager) Subscribe() <-chan model.DNSRecord {
 	return m.recordCh
 }
 
-// NewPlatformCollector 创建平台特定的采集器
-// 具体实现通过构建标签在不同文件中提供
-func NewPlatformCollector() Collector {
-	return newPlatformCollector()
-}
+
 
 // runCollector 运行单个采集器
 func (m *Manager) runCollector(ctx context.Context, collector Collector) {

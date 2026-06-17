@@ -2,13 +2,12 @@ package web
 
 import (
 	"context"
+	"dnsflux/frontend"
 	"dnsflux/internal/model"
 	"dnsflux/internal/store"
 	"dnsflux/pkg/logger"
 	"encoding/json"
 	"fmt"
-	"html/template"
-	"io/fs"
 	"net/http"
 	"sync"
 
@@ -47,18 +46,13 @@ func New(store store.Store, addr string, port int) *Server {
 func (s *Server) Start(ctx context.Context) error {
 	mux := http.NewServeMux()
 
+	// 获取前端文件系统
+	fSys := frontend.GetFS()
+
 	// 注册路由
-	mux.HandleFunc("/", s.handleIndex)
+	mux.Handle("/", http.FileServer(http.FS(fSys)))
 	mux.HandleFunc("/api/records", s.handleRecords)
 	mux.HandleFunc("/ws", s.handleWebSocket)
-
-	// 静态文件服务
-	if HasStatic() {
-		staticFS, err := StaticFS()
-		if err == nil {
-			mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
-		}
-	}
 
 	s.server = &http.Server{
 		Addr:    s.config.Addr,
@@ -84,32 +78,6 @@ func (s *Server) Stop(ctx context.Context) error {
 func (s *Server) AddRecord(record model.DNSRecord) {
 	if err := s.store.AddRecord(record); err != nil {
 		logger.Error(fmt.Sprintf("添加记录失败: %v", err))
-	}
-}
-
-// handleIndex 处理首页请求
-func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
-	templateFS, err := TemplatesFS()
-	if err != nil {
-		http.Error(w, "模板文件系统错误", http.StatusInternalServerError)
-		return
-	}
-
-	tmplData, err := fs.ReadFile(templateFS, "index.html")
-	if err != nil {
-		http.Error(w, "读取模板文件失败", http.StatusInternalServerError)
-		return
-	}
-
-	tmpl, err := template.New("index").Parse(string(tmplData))
-	if err != nil {
-		http.Error(w, "解析模板失败", http.StatusInternalServerError)
-		return
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := tmpl.Execute(w, nil); err != nil {
-		logger.Error(fmt.Sprintf("模板执行失败: %v", err))
 	}
 }
 

@@ -1,30 +1,36 @@
-# IDE
-.idea/
-.vscode/
+# Mac OS
 .DS_Store
 
-# Environment files
+# VS Code
+.vscode/
+
+# IntelliJ IDEA
+.idea/
+
+# Maven
+.mvn/
+target/
+
+# Gradle
+.gradle/
+build/
+
+# Node
+node_modules/
+
+# Environments
 .env
 .venv
 
-# Dependency directories
-node_modules/
+# reference
+reference/
 
-# Database files
-*.db
-
-# Log files
-/logs/
+# Logs
+logs/
 *.log
 
-# Test files
-/test/
-/testdata/
-/tmp/
-
-# Build files
-build/
-dist/
+# Production
+/build
 
 # eBPF generated files
 internal/collector/linux/bpf/vmlinux.h
