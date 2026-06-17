@@ -5,16 +5,16 @@
 
 <p>
   <a href="https://mit-license.org/">
-    <img src="https://img.shields.io/github/license/whoopscs/dnsflux?style=flat" alt="License">
+    <img src="https://img.shields.io/github/license/tldrw/dnsflux?style=flat" alt="License">
   </a>
-  <a href="https://github.com/whoopscs/dnsflux">
-    <img src="https://img.shields.io/github/stars/whoopscs/dnsflux?style=flat" alt="Stars">
+  <a href="https://github.com/tldrw/dnsflux">
+    <img src="https://img.shields.io/github/stars/tldrw/dnsflux?style=flat" alt="Stars">
   </a>
-  <a href="https://github.com/whoopscs/dnsflux">
-    <img src="https://img.shields.io/github/forks/whoopscs/dnsflux?style=flat" alt="Forks">
+  <a href="https://github.com/tldrw/dnsflux">
+    <img src="https://img.shields.io/github/forks/tldrw/dnsflux?style=flat" alt="Forks">
   </a>
-  <a href="https://github.com/whoopscs/dnsflux/releases">
-    <img src="https://img.shields.io/github/v/release/whoopscs/dnsflux?sort=semver" alt="Release">
+  <a href="https://github.com/tldrw/dnsflux/releases">
+    <img src="https://img.shields.io/github/v/release/tldrw/dnsflux?sort=semver" alt="Release">
   </a>
 </p>
 
@@ -47,15 +47,17 @@ DNSFlux is a high-performance cross-platform DNS query monitoring tool designed 
 - **Permission Requirements**: Can run with normal user privileges
 
 ### Linux Platform
-- **Technology Stack**: Based on eBPF (Extended Berkeley Packet Filter) technology
-- **Data Source**: Kernel network packet capture and parsing
-- **Monitoring Points**: udp_sendmsg and tcp_sendmsg system calls
+- **Technology Stack**: Based on eBPF (Extended Berkeley Packet Filter) technology, written in **CO-RE (Compile Once - Run Everywhere)** pattern
+- **Data Source**: Kernel network packet capture and parsing (Socket Filter mechanism, supports resolving actual IP answer results)
+- **Monitoring Points**: `udp_sendmsg` and `tcp_sendmsg` system calls, combined with Kprobe / Kretprobe to match PIDs accurately
 - **Permission Requirements**: Requires root privileges or privileged mode
 - **Kernel Requirements**: 
-  - Kernel version >= 5.8 (recommended for best CO-RE support)
-  - BTF (BPF Type Format) support enabled (CONFIG_DEBUG_INFO_BTF=y)
-  - Kernel debug information packages installed
+  - Kernel version >= 4.4 (eBPF support) / BTF support enabled (recommended for CO-RE relocation)
   - eBPF support enabled (CONFIG_BPF_SYSCALL=y)
+- **Excellent Cross-Distribution & Compatibility Design**:
+  - **Link-Free Distribution**: Built using pure Go static linking (`CGO_ENABLED=0`) without dynamic dependencies on `glibc`, making it run seamlessly on Alpine Linux (`musl libc`), CentOS/RHEL, Alma/Rocky, Debian, Ubuntu, etc.
+  - **Zero Runtime Dependencies**: The generated eBPF bytecode is embedded directly into the binary via `go:embed`. Target hosts **do not need** compiler toolchains like Clang, LLVM, GCC, or make installed. Just download the single binary and run.
+  - **Cross-Kernel Adaptive**: Thanks to CO-RE relocation technology, the application reads the target host's kernel BTF descriptors at startup and dynamically corrects the struct field offsets in the loaded eBPF bytecode. It successfully adapts to older hosts or deeply customized/secured kernels without recompilation.
 
 ### System Components
 
@@ -118,7 +120,7 @@ DNSFlux is a high-performance cross-platform DNS query monitoring tool designed 
 
 #### Method 1: Download Pre-compiled Binaries
 
-1. Visit the [Releases page](https://github.com/whoopscs/dnsflux/releases)
+1. Visit the [Releases page](https://github.com/tldrw/dnsflux/releases)
 2. Download the executable file for your platform
 3. Extract and run
 
@@ -126,7 +128,7 @@ DNSFlux is a high-performance cross-platform DNS query monitoring tool designed 
 
 ```bash
 # Clone repository
-git clone https://github.com/whoopscs/dnsflux.git
+git clone https://github.com/tldrw/dnsflux.git
 cd dnsflux
 
 # Install dependencies
@@ -283,6 +285,6 @@ This tool is for educational purposes and authorized security testing environmen
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=whoopscs/dnsflux&type=Date)](https://star-history.com/#whoopscs/dnsflux&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=tldrw/dnsflux&type=Date)](https://star-history.com/#tldrw/dnsflux&Date)
 
 </div>

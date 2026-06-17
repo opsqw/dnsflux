@@ -5,8 +5,8 @@ import (
 	"dnsflux/internal/collector"
 	"dnsflux/internal/store/memory"
 	"dnsflux/internal/utils"
+	"dnsflux/internal/config"
 	"dnsflux/internal/web"
-	"dnsflux/pkg/flag"
 	"dnsflux/pkg/logger"
 	"fmt"
 	"log"
@@ -25,13 +25,19 @@ var (
 
 func main() {
 	// 加载完整配置（包括命令行参数和环境变量）
-	cfg := flag.ParseFlags()
+	cfg := config.ParseFlags()
 
 	// 初始化日志
 	logger.InitLogger()
 
+	// 打印 logo 及其版本
+	if Version != "dev" {
+		config.Version = Version
+	}
+	fmt.Print(config.PrintLogo())
+
 	logger.Info("DNSFlux 启动中...")
-	logger.Info(fmt.Sprintf("版本: %s", Version))
+	logger.Info(fmt.Sprintf("版本: %s", config.Version))
 	logger.Info(fmt.Sprintf("配置: %+v", cfg))
 
 	// 创建存储
