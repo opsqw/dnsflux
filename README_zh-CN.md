@@ -5,16 +5,16 @@
 
 <p>
   <a href="https://mit-license.org/">
-    <img src="https://img.shields.io/github/license/tldrw/dnsflux?style=flat" alt="License">
+    <img src="https://img.shields.io/github/license/opsqw/dnsflux?style=flat" alt="License">
   </a>
-  <a href="https://github.com/tldrw/dnsflux">
-    <img src="https://img.shields.io/github/stars/tldrw/dnsflux?style=flat" alt="Stars">
+  <a href="https://github.com/opsqw/dnsflux">
+    <img src="https://img.shields.io/github/stars/opsqw/dnsflux?style=flat" alt="Stars">
   </a>
-  <a href="https://github.com/tldrw/dnsflux">
-    <img src="https://img.shields.io/github/forks/tldrw/dnsflux?style=flat" alt="Forks">
+  <a href="https://github.com/opsqw/dnsflux">
+    <img src="https://img.shields.io/github/forks/opsqw/dnsflux?style=flat" alt="Forks">
   </a>
-  <a href="https://github.com/tldrw/dnsflux/releases">
-    <img src="https://img.shields.io/github/v/release/tldrw/dnsflux?sort=semver" alt="Release">
+  <a href="https://github.com/opsqw/dnsflux/releases">
+    <img src="https://img.shields.io/github/v/release/opsqw/dnsflux?sort=semver" alt="Release">
   </a>
 </p>
 
@@ -115,7 +115,7 @@ DNSFlux 是一个高性能的跨平台 DNS 查询监控工具，专为网络安�
 
 #### 方式一：下载预编译版本
 
-1. 访问 [Releases 页面](https://github.com/tldrw/dnsflux/releases)
+1. 访问 [Releases 页面](https://github.com/opsqw/dnsflux/releases)
 2. 下载对应平台的可执行文件
 3. 解压并运行
 
@@ -123,7 +123,7 @@ DNSFlux 是一个高性能的跨平台 DNS 查询监控工具，专为网络安�
 
 ```bash
 # 克隆仓库
-git clone https://github.com/tldrw/dnsflux.git
+git clone https://github.com/opsqw/dnsflux.git
 cd dnsflux
 
 # 安装依赖
@@ -280,6 +280,6 @@ dnsflux/
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tldrw/dnsflux&type=Date)](https://star-history.com/#tldrw/dnsflux&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=opsqw/dnsflux&type=Date)](https://star-history.com/#opsqw/dnsflux&Date)
 
 </div>

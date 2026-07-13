@@ -5,22 +5,22 @@
 
 <p>
   <a href="https://mit-license.org/">
-    <img src="https://img.shields.io/github/license/tldrw/dnsflux?style=flat" alt="License">
+    <img src="https://img.shields.io/github/license/opsqw/dnsflux?style=flat" alt="License">
   </a>
-  <a href="https://github.com/tldrw/dnsflux">
-    <img src="https://img.shields.io/github/stars/tldrw/dnsflux?style=flat" alt="Stars">
+  <a href="https://github.com/opsqw/dnsflux">
+    <img src="https://img.shields.io/github/stars/opsqw/dnsflux?style=flat" alt="Stars">
   </a>
-  <a href="https://github.com/tldrw/dnsflux">
-    <img src="https://img.shields.io/github/forks/tldrw/dnsflux?style=flat" alt="Forks">
+  <a href="https://github.com/opsqw/dnsflux">
+    <img src="https://img.shields.io/github/forks/opsqw/dnsflux?style=flat" alt="Forks">
   </a>
-  <a href="https://github.com/tldrw/dnsflux/releases">
-    <img src="https://img.shields.io/github/v/release/tldrw/dnsflux?sort=semver" alt="Release">
+  <a href="https://github.com/opsqw/dnsflux/releases">
+    <img src="https://img.shields.io/github/v/release/opsqw/dnsflux?sort=semver" alt="Release">
   </a>
 </p>
 
 <div>
 
-English ｜ [中文](README_CN.md)
+English ｜ [中文](README_zh-CN.md)
 
 </div>
 </div>
@@ -120,7 +120,7 @@ DNSFlux is a high-performance cross-platform DNS query monitoring tool designed 
 
 #### Method 1: Download Pre-compiled Binaries
 
-1. Visit the [Releases page](https://github.com/tldrw/dnsflux/releases)
+1. Visit the [Releases page](https://github.com/opsqw/dnsflux/releases)
 2. Download the executable file for your platform
 3. Extract and run
 
@@ -128,7 +128,7 @@ DNSFlux is a high-performance cross-platform DNS query monitoring tool designed 
 
 ```bash
 # Clone repository
-git clone https://github.com/tldrw/dnsflux.git
+git clone https://github.com/opsqw/dnsflux.git
 cd dnsflux
 
 # Install dependencies
@@ -285,6 +285,6 @@ This tool is for educational purposes and authorized security testing environmen
 
 <div align="center">
 
-[![Star History Chart](https://api.star-history.com/svg?repos=tldrw/dnsflux&type=Date)](https://star-history.com/#tldrw/dnsflux&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=opsqw/dnsflux&type=Date)](https://star-history.com/#opsqw/dnsflux&Date)
 
 </div>
